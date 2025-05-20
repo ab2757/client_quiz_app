@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Client Questionnaire</title>
+</head>
+<body>
+    <h2>Client Questionnaire</h2>
+    <form action="/submit" method="POST">
+        {% for i in range(1, 6) %}
+            <p><strong>Question {{ i }}:</strong> Random question text {{ i }}</p>
+            {% for j in range(1, 6) %}
+                <input type="radio" name="q{{ i }}" value="Option {{ j }}" required>
+                Option {{ j }}<br>
+            {% endfor %}
+            <br>
+        {% endfor %}
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
