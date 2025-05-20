@@ -12,7 +12,6 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 
-sg = sendgrid.SendGridAPIClient(api_key=os.getenv('SENDGRID_API_KEY'))
 app = Flask(__name__)
 
 @app.route('/')
@@ -57,6 +56,7 @@ def send_email_with_attachment(filepath):
         smtp.send_message(msg)
 
 def send_email(responses):
+    SENDGRID_API_KEY=os.getenv('SENDGRID_API_KEY')
     sg = sendgrid.SendGridAPIClient(SENDGRID_API_KEY)
     from_email = Email("ab2757@gmail.com")  # Your email or a SendGrid verified email
     to_email = To("ab2757@gmail.com")  # Your email or the recipient's email
