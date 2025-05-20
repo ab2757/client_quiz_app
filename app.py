@@ -11,6 +11,9 @@ from sendgrid.helpers.mail import Mail, Email, To, Content
 
 app = Flask(__name__)
 
+SENDGRID_API_KEY='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'
+
+
 @app.route('/')
 def form():
     return render_template('form.html')
@@ -29,7 +32,7 @@ def submit():
     # Send email with the responses
     send_email(responses)
     
-    return redirect('/thank-you')
+    return 'thank-you'
 
 def send_email_with_attachment(filepath):
     sender = 'your_email@example.com'
@@ -53,7 +56,7 @@ def send_email_with_attachment(filepath):
         smtp.send_message(msg)
 
 def send_email(responses):
-    sg = sendgrid.SendGridAPIClient(api_key='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')  # Replace with your API Key
+    sg = sendgrid.SendGridAPIClient(SENDGRID_API_KEY)
     from_email = Email("ab2757@gmail.com")  # Your email or a SendGrid verified email
     to_email = To("ab2757@gmail.com")  # Your email or the recipient's email
     subject = "New Client Responses"
@@ -69,7 +72,11 @@ def send_email(responses):
     """
     
     content = Content("text/plain", body)
-    mail = Mail(from_email, to_email, subject, content)
+    mail = Mail(
+    from_email='ab2757@gmail.com',
+    to_emails='ab2757@gmail.com',
+    subject='Sending with Twilio SendGrid is Fun',
+    html_content = content)
     
     try:
         response = sg.send(mail)
