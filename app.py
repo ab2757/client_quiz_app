@@ -6,13 +6,15 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
+import sendgrid
+from sendgrid.helpers.mail import Mail, Email, To, Content
 
 app = Flask(__name__)
 
 @app.route('/')
 def form():
     return render_template('form.html')
+
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -24,15 +26,10 @@ def submit():
         'Question 5': request.form['q5'],
     }
 
-    # Save to Excel
-    df = pd.DataFrame([responses])
-    filename = 'client_responses.xlsx'
-    df.to_excel(filename, index=False)
-
-    # Email it (Optional - fill in credentials)
-    send_email_with_attachment(filename)
-
-    return 'Thank you for your submission!'
+    # Send email with the responses
+    send_email(responses)
+    
+    return redirect('/thank-you')
 
 def send_email_with_attachment(filepath):
     sender = 'your_email@example.com'
@@ -56,11 +53,11 @@ def send_email_with_attachment(filepath):
         smtp.send_message(msg)
 
 def send_email(responses):
-    from_email = "your-email@gmail.com"  # Replace with your Gmail address
-    to_email = "recipient-email@example.com"  # Your email or the recipient's email
+    sg = sendgrid.SendGridAPIClient(api_key='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')  # Replace with your API Key
+    from_email = Email("ab2757@gmail.com")  # Your email or a SendGrid verified email
+    to_email = To("ab2757@gmail.com")  # Your email or the recipient's email
     subject = "New Client Responses"
     
-    # Compose the email body
     body = f"""
     Here are the new client responses:
     
@@ -70,20 +67,13 @@ def send_email(responses):
     Question 4: {responses['Question 4']}
     Question 5: {responses['Question 5']}
     """
-
-    # Set up the email
-    msg = MIMEMultipart()
-    msg['From'] = from_email
-    msg['To'] = to_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
-
-    # Send the email using Gmail SMTP
+    
+    content = Content("text/plain", body)
+    mail = Mail(from_email, to_email, subject, content)
+    
     try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(from_email, "your-app-password")  # Use your Gmail App Password
-            server.sendmail(from_email, to_email, msg.as_string())
-        print("Email sent successfully.")
+        response = sg.send(mail)
+        print(f"Email sent with status code: {response.status_code}")
     except Exception as e:
         print(f"Error: {e}")
 
