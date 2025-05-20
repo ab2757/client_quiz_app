@@ -21,6 +21,7 @@ def form():
 
 @app.route('/submit', methods=['POST'])
 def submit():
+    print("📝 Received form submission", flush=True)
     responses = {
         'Question 1': request.form['q1'],
         'Question 2': request.form['q2'],
@@ -80,10 +81,29 @@ def send_email(responses):
     html_content = content)
     
     try:
+        print("📤 Sending email...", flush=True)
         response = sg.send(mail)
         print(f"Email sent with status code: {response.status_code}")
     except Exception as e:
         print(f"Error: {e}")
+
+@app.route('/test-email')
+def test_email():
+    print("⚙️ Test email route hit", flush=True)
+    try:
+        SENDGRID_API_KEY=os.getenv('SENDGRID_API_KEY')
+        sg = sendgrid.SendGridAPIClient(SENDGRID_API_KEY)
+        from_email='ab2757@gmail.com'
+        to_email='ab2757@gmail.com'
+        subject = "Test from Render"
+        content = Content("text/plain", "This is a test email from Render.")
+        mail = Mail(from_email, to_email, subject, content)
+        response = sg.send(mail)
+        print(f"✅ Email sent. Status: {response.status_code}", flush=True)
+        return f"Sent. Status: {response.status_code}, Body: {response.body}"
+    except Exception as e:
+        print(f"❌ Error: {e}", flush=True)
+        return f"Error: {e}"
 
 
 if __name__ == '__main__':
