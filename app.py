@@ -8,11 +8,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
+from dotenv import load_dotenv
+load_dotenv()
+import os
 
+sg = sendgrid.SendGridAPIClient(api_key=os.getenv('SENDGRID_API_KEY'))
 app = Flask(__name__)
-
-SENDGRID_API_KEY='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'
-
 
 @app.route('/')
 def form():
