@@ -32,11 +32,11 @@ def form():
 def submit():
     print("📝 Received form submission", flush=True)
     responses = {
-    q1 = request.form.get('q1')
-    q2 = request.form.get('q2')
-    q3 = request.form.get('q3')
-    q4 = request.form.get('q4')
-    q5 = request.form.get('q5')
+    q1 = request.form['q1']
+    q2 = request.form['q2']
+    q3 = request.form['q3']
+    q4 = request.form['q4']
+    q5 = request.form['q5']
     }
 
     # Send email with the responses
