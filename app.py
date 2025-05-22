@@ -7,8 +7,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
-from dotenv import load_dotenv
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 import os
 from flask import Flask, render_template, request, redirect
 from openpyxl import Workbook, load_workbook
@@ -18,10 +18,10 @@ import dropbox
 
 app = Flask(__name__)
 
-DROPBOX_ACCESS_TOKEN = "_vWi9k20dIAAAAAAAAAAEUWp8ls44vAnYZhtocDkbx7EHXv9V4uGS3gXceBzErNO"
+DROPBOX_ACCESS_TOKEN = "sl.u.AFtPbLmOd81UIRoLqsFxCzlI3Sh8Zi8ke-ESE-QdTtv23ntY_hpKFjBzBk_7Qpxe9OSB0f6RICsGORcgVHs7kEwzQ3nZ6YzqqRI1gAlSifqLu7AxcfWECWv-vImc6fZ_ul6xBr4GXxQ6ld_3L9mKABTgOPqNM5RpwXmzK-_-Zow0iWHWp2xUFhsas7uDqlyCCxUfkAJrF5BAZLQL31D_ck-FqMKceoW7XN5tCWWT4Q8a9XAdcPhqYZGGaQy9mMLTLdqUjJkFn4kKJPTIAEHW1hLJz6DeOmyt-k8WilIPqY_ymCRUkLBhnBqc6jmK7Wlp9-PhL7oOADB8ijzA6jwVAQc6zt4qhb8bVO6FJewmx277IU9Xse-7dy-UqKzxvE1N28SrgL7gHiKoA-AR_6BmsLYknwE4uD0A78FuAAED_DCsLwpdHlop33tuaLtMkWl2OLruKQxwH_TvrqWi0M64gfAoqx0QkDojCzIeolYh6HrPuCPMpNZceZP4oeYtW3aMp3obwiK7nEYmpk563YysSmLNfMFDj_fPotY_tlvHzMOqcXLm0dRgQlytfLINrCz5vJQ6yN3u5jP3ylarwGfp8Q84S4AjSx9fBgJi3JU7UH3YUmjiwg0vbfke_SCx99787cQoB13wgmCTjn7e94YIv55ooucQEX3vQ8iC2JyNrFetwo2XVXkQA1H2XLAm8iqYZ5m3E_wVifaSHd0owTdyO_V8GNfvTd4owj_PptUTe0JFNQJun-hmDzVhYS9a0RfptNaStlzhXnSZ0nE66wKGT3AZx3eZSvsM3Kxzv8Y6z52tQDUxXzKWZBU75OYBbocwRe45VrYuGGgInydziTTpWyFcqCmCFlX_aUZl1PfnZxyCiKAdGkcHAtAKbeKJ8mj0vkmPT5Lnm5dHEKvy0EsKJ-Nu_YvR-wN6K7CxW03qkr8S2lh0NV2_zIJC2gcuSgQwW4wDtXNpAlv714QGIUzhexwiMGEOU1r4XT9BrIfYmfUqFitn3oVmVt9wNG9C7RouY2caZnFOjS3KD1S-DskjdohVMH7xRYc3ajNxuCB6bhIk1h3TfEvy0sH_30RsSonsY8kyniAzfcxFjpFyL7l3402dzjMDQnAnYeC4loKQ7D1caeQg54jmsgz5TCrs_wekQGauKXF-8R8qzYQ7RNUG-M8edcPWJ5Yu7gYMflqcKB-pZXb4vSDxokivHbwTq777a4x-HXWSQyQvYnBtyvbNrektl-OcDSplIdJ7VQV1kXSOWvYmjBLdmnJsivi3aBjktRRTMmhYryoRSZeoCsQCOxKf"
 #DROPBOX_ACCESS_TOKEN = os.getenv("DROPBOX_TOKEN")  # Set this in your Render env
 
-EXCEL_FILE = "responses.xlsx"
+#filename = "responses.csv"
 
 @app.route('/')
 def form():
@@ -29,112 +29,33 @@ def form():
 
 
 @app.route('/submit', methods=['POST'])
-def submit():
+def submit_form():
     print("📝 Received form submission", flush=True)
-    responses = {
-    q1 = request.form['q1']
-    q2 = request.form['q2']
-    q3 = request.form['q3']
-    q4 = request.form['q4']
-    q5 = request.form['q5']
-    }
-
-    # Send email with the responses
-    #send_email(responses)
+    email = request.form.get('email')  # 👈 New line to get email
+    q1 = request.form.get('q1')
+    q2 = request.form.get('q2')
+    q3 = request.form.get('q3')
+    q4 = request.form.get('q4')
+    q5 = request.form.get('q5')
 
     responses = [q1, q2, q3, q4, q5]
-    save_to_excel(responses)
-    upload_to_dropbox()
+    data = pd.DataFrame({'responses':responses})
+    #print(responses)
+    #print(data)
+    #filename = email.replace('@','at')+'.csv'
+    filename = email+'.csv'
+    upload_to_dropbox(data,filename)
     
-    #return 'thank-you'
     return "✅ Response submitted and uploaded to Dropbox!"
 
-def save_to_excel(data):
-    if not os.path.exists(EXCEL_FILE):
-        wb = Workbook()
-        ws = wb.active
-        ws.append(["Timestamp", "Q1", "Q2", "Q3", "Q4", "Q5"])  # Adjust headers
-    else:
-        wb = load_workbook(EXCEL_FILE)
-        ws = wb.active
 
-    ws.append([datetime.now().strftime('%Y-%m-%d %H:%M:%S')] + data)
-    wb.save(EXCEL_FILE)
-
-def upload_to_dropbox():
+def upload_to_dropbox(data,filename):
     dbx = dropbox.Dropbox(DROPBOX_ACCESS_TOKEN)
-    with open(EXCEL_FILE, "rb") as f:
-        dbx.files_upload(f.read(), f"/{EXCEL_FILE}", mode=dropbox.files.WriteMode.overwrite)
+    df_string = data.to_csv(index=False)
+    db_bytes = bytes(df_string, 'utf8')
+    targetfile = "/Apps/ifm_risk_profiling_responses/" + filename
+    meta = dbx.files_upload(db_bytes, targetfile, mode=dropbox.files.WriteMode("overwrite"))
 
-def send_email_with_attachment(filepath):
-    sender = 'your_email@example.com'
-    password = 'your_email_password'
-    recipient = 'recipient_email@example.com'
-
-    msg = EmailMessage()
-    msg['Subject'] = 'New Client Response'
-    msg['From'] = sender
-    msg['To'] = recipient
-    msg.set_content('Attached is the new client response.')
-
-    with open(filepath, 'rb') as f:
-        file_data = f.read()
-        msg.add_attachment(file_data, maintype='application',
-                           subtype='vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                           filename=filepath)
-
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-        smtp.login(sender, password)
-        smtp.send_message(msg)
-
-def send_email(responses):
-    SENDGRID_API_KEY=os.getenv('SENDGRID_API_KEY')
-    sg = sendgrid.SendGridAPIClient(SENDGRID_API_KEY)
-    from_email = Email("ab2757@gmail.com")  # Your email or a SendGrid verified email
-    to_email = To("ab2757@gmail.com")  # Your email or the recipient's email
-    subject = "New Client Responses"
-    
-    body = f"""
-    Here are the new client responses:
-    
-    Question 1: {responses['Question 1']}
-    Question 2: {responses['Question 2']}
-    Question 3: {responses['Question 3']}
-    Question 4: {responses['Question 4']}
-    Question 5: {responses['Question 5']}
-    """
-    
-    content = Content("text/plain", body)
-    mail = Mail(
-    from_email='ab2757@gmail.com',
-    to_emails='ab2757@gmail.com',
-    subject='Sending with Twilio SendGrid is Fun',
-    html_content = content)
-    
-    try:
-        print("📤 Sending email...", flush=True)
-        response = sg.send(mail)
-        print(f"Email sent with status code: {response.status_code}")
-    except Exception as e:
-        print(f"Error: {e}")
-
-@app.route('/test-email')
-def test_email():
-    print("⚙️ Test email route hit", flush=True)
-    try:
-        SENDGRID_API_KEY=os.getenv('SENDGRID_API_KEY')
-        sg = sendgrid.SendGridAPIClient(SENDGRID_API_KEY)
-        from_email='ab2757@gmail.com'
-        to_email='ab2757@gmail.com'
-        subject = "Test from Render"
-        content = Content("text/plain", "This is a test email from Render.")
-        mail = Mail(from_email, to_email, subject, content)
-        response = sg.send(mail)
-        print(f"✅ Email sent. Status: {response.status_code}", flush=True)
-        return f"Sent. Status: {response.status_code}, Body: {response.body}"
-    except Exception as e:
-        print(f"❌ Error: {e}", flush=True)
-        return f"Error: {e}"
 
 
 if __name__ == '__main__':
