@@ -1,4 +1,3 @@
-from flask import Flask, render_template, request
 import pandas as pd
 import smtplib
 from email.message import EmailMessage
@@ -11,8 +10,18 @@ from sendgrid.helpers.mail import Mail, Email, To, Content
 from dotenv import load_dotenv
 load_dotenv()
 import os
+from flask import Flask, render_template, request, redirect
+from openpyxl import Workbook, load_workbook
+from datetime import datetime
+import dropbox
+
 
 app = Flask(__name__)
+
+DROPBOX_ACCESS_TOKEN = "_vWi9k20dIAAAAAAAAAAEUWp8ls44vAnYZhtocDkbx7EHXv9V4uGS3gXceBzErNO"
+#DROPBOX_ACCESS_TOKEN = os.getenv("DROPBOX_TOKEN")  # Set this in your Render env
+
+EXCEL_FILE = "responses.xlsx"
 
 @app.route('/')
 def form():
@@ -23,17 +32,39 @@ def form():
 def submit():
     print("📝 Received form submission", flush=True)
     responses = {
-        'Question 1': request.form['q1'],
-        'Question 2': request.form['q2'],
-        'Question 3': request.form['q3'],
-        'Question 4': request.form['q4'],
-        'Question 5': request.form['q5'],
+    q1 = request.form.get('q1')
+    q2 = request.form.get('q2')
+    q3 = request.form.get('q3')
+    q4 = request.form.get('q4')
+    q5 = request.form.get('q5')
     }
 
     # Send email with the responses
-    send_email(responses)
+    #send_email(responses)
+
+    responses = [q1, q2, q3, q4, q5]
+    save_to_excel(responses)
+    upload_to_dropbox()
     
-    return 'thank-you'
+    #return 'thank-you'
+    return "✅ Response submitted and uploaded to Dropbox!"
+
+def save_to_excel(data):
+    if not os.path.exists(EXCEL_FILE):
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Timestamp", "Q1", "Q2", "Q3", "Q4", "Q5"])  # Adjust headers
+    else:
+        wb = load_workbook(EXCEL_FILE)
+        ws = wb.active
+
+    ws.append([datetime.now().strftime('%Y-%m-%d %H:%M:%S')] + data)
+    wb.save(EXCEL_FILE)
+
+def upload_to_dropbox():
+    dbx = dropbox.Dropbox(DROPBOX_ACCESS_TOKEN)
+    with open(EXCEL_FILE, "rb") as f:
+        dbx.files_upload(f.read(), f"/{EXCEL_FILE}", mode=dropbox.files.WriteMode.overwrite)
 
 def send_email_with_attachment(filepath):
     sender = 'your_email@example.com'
