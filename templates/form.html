@@ -7,6 +7,9 @@
 <body>
     <h2>Client Questionnaire</h2>
     <form action="/submit" method="POST">
+	 <label for="email">Your Email:</label><br>
+        <input type="email" id="email" name="email" required><br><br>
+
         {% for i in range(1, 6) %}
             <p><strong>Question {{ i }}:</strong> Random question text {{ i }}</p>
             {% for j in range(1, 6) %}
