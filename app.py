@@ -1,53 +1,16 @@
+from flask import Flask, request, render_template
 import pandas as pd
-import smtplib
-from email.message import EmailMessage
-import os
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import sendgrid
-from sendgrid.helpers.mail import Mail, Email, To, Content
-#from dotenv import load_dotenv
-#load_dotenv()
-import os
-from flask import Flask, render_template, request, redirect
-from openpyxl import Workbook, load_workbook
-from datetime import datetime
 import dropbox
-
+import os
 
 app = Flask(__name__)
 
-DROPBOX_ACCESS_TOKEN = "sl.u.AFtPbLmOd81UIRoLqsFxCzlI3Sh8Zi8ke-ESE-QdTtv23ntY_hpKFjBzBk_7Qpxe9OSB0f6RICsGORcgVHs7kEwzQ3nZ6YzqqRI1gAlSifqLu7AxcfWECWv-vImc6fZ_ul6xBr4GXxQ6ld_3L9mKABTgOPqNM5RpwXmzK-_-Zow0iWHWp2xUFhsas7uDqlyCCxUfkAJrF5BAZLQL31D_ck-FqMKceoW7XN5tCWWT4Q8a9XAdcPhqYZGGaQy9mMLTLdqUjJkFn4kKJPTIAEHW1hLJz6DeOmyt-k8WilIPqY_ymCRUkLBhnBqc6jmK7Wlp9-PhL7oOADB8ijzA6jwVAQc6zt4qhb8bVO6FJewmx277IU9Xse-7dy-UqKzxvE1N28SrgL7gHiKoA-AR_6BmsLYknwE4uD0A78FuAAED_DCsLwpdHlop33tuaLtMkWl2OLruKQxwH_TvrqWi0M64gfAoqx0QkDojCzIeolYh6HrPuCPMpNZceZP4oeYtW3aMp3obwiK7nEYmpk563YysSmLNfMFDj_fPotY_tlvHzMOqcXLm0dRgQlytfLINrCz5vJQ6yN3u5jP3ylarwGfp8Q84S4AjSx9fBgJi3JU7UH3YUmjiwg0vbfke_SCx99787cQoB13wgmCTjn7e94YIv55ooucQEX3vQ8iC2JyNrFetwo2XVXkQA1H2XLAm8iqYZ5m3E_wVifaSHd0owTdyO_V8GNfvTd4owj_PptUTe0JFNQJun-hmDzVhYS9a0RfptNaStlzhXnSZ0nE66wKGT3AZx3eZSvsM3Kxzv8Y6z52tQDUxXzKWZBU75OYBbocwRe45VrYuGGgInydziTTpWyFcqCmCFlX_aUZl1PfnZxyCiKAdGkcHAtAKbeKJ8mj0vkmPT5Lnm5dHEKvy0EsKJ-Nu_YvR-wN6K7CxW03qkr8S2lh0NV2_zIJC2gcuSgQwW4wDtXNpAlv714QGIUzhexwiMGEOU1r4XT9BrIfYmfUqFitn3oVmVt9wNG9C7RouY2caZnFOjS3KD1S-DskjdohVMH7xRYc3ajNxuCB6bhIk1h3TfEvy0sH_30RsSonsY8kyniAzfcxFjpFyL7l3402dzjMDQnAnYeC4loKQ7D1caeQg54jmsgz5TCrs_wekQGauKXF-8R8qzYQ7RNUG-M8edcPWJ5Yu7gYMflqcKB-pZXb4vSDxokivHbwTq777a4x-HXWSQyQvYnBtyvbNrektl-OcDSplIdJ7VQV1kXSOWvYmjBLdmnJsivi3aBjktRRTMmhYryoRSZeoCsQCOxKf"
-#DROPBOX_ACCESS_TOKEN = os.getenv("DROPBOX_TOKEN")  # Set this in your Render env
-
-#filename = "responses.csv"
+# Initialize Dropbox with your access token
+DROPBOX_ACCESS_TOKEN = "sl.u.AFtTnd8kYAD1Nk3yVEeDsLz4BKxTHgHDD3jtLdk-LHYR024A7hiXv-ZsV0rP2MTvENvKSAgCMXFTfsY0J7txhkxrg3AuCf_8t3rSuzjxu1ZSKJJw4Q1FRYBrINTjeW4haIvZe8J2Q9aSLS4OfIusFebUynSnCJKordQpedNga-0nFdoE9cy6GweKdL4TogRvWiSuxxmmonMrZ8HEdHfbgEs3kxVaDrCbOfBLH0S1FL5e_ZdB0uXqxR-yE8Yesi1HDW1bxrjK2Q4LniM9JnpWJgMqUBSGWGxOlnNV02a12JE85PmijO5bJiEDMT0_d2RHIlfnAoOx4r9EVS2YUNntL9ppmIGZWiqaYPPphbEKRoP4AdPhpcfpVcxFYrkayagGo1gzNdmlJefbXJR1h7E2fQr8A2DPUAppvOaS8N588xRGcMA-IR5hfuqq5qp1ekvpbN8HEn_3qoeAt-45F9kn5yDF5zTiA-E6RyyYfgYvzF46HGVLJVw2uxPC-Eb8gZBQYv2ojcDc4KDUmtrK02BtY7fvlydGk_kmKII4KIKim8Kw-koQgSL8dIl_e1DUPr-n7JdQIMVy4xigqK1FprJxLDbj2hOHTuFsmefST32pC10WcnxH9iytcwm3JGsypZtSeb9zWCQcHv0tCxy_I34jNidJnnclFWpl9C-zBkdeWVD_wzdNDGPA3kW73hg_bHYPQVoRSyrE-qFo-3qIODW5gpeyT_ZsSA0e4_NtzCC3Qbu6S45cAPZSY0t5ie_dFmRYg97YffWzusIfjeZqwZGtbLPq2gJgiL2nLzg_BrTY120bWZ1LM8e0qvPeHZVA6Gu_ykK4vmxWwT4BxxIyxhco3pi3RyWpfZLIiSJq_KTofRpUhrdOeAXMMoDXQK_HJcpd6qwRt9DqEAq77vWt8gDh_1V82nAm6gzUTQiwAVoQE-4V3t1ovwbnC5a1WGnzyfoKVt9SdRUFl-dD8JTWcFrioXQEDU3JKGTkRV5-hocQBGQDxcth1hstRGB4NZV82qlpr9SVsgUz7f6YQm0IhnaGaoPS0JojTv354e7xHAUTuPB74Qu0Mb5EMHB6gA720DrjsRoQhQqkkqQ_GrNg2LGJpbApYR0CUkeiQOf_X_NIon_Twv5eFJTItONAK1wXSEi8B5jEa0BOcIGILnIr9JnQ5Abl8PxioZAU8DCLSWJEorWRQr-YWCccYfOXImw7L6mgro4CGSTSJ69JVwE4Yf-vGo1GqkgmvzjljfQ1KL2XHnM3vH6G9aEdY9l7B-O-cGeCTZCNAnfoPXOZnWJTLoy4jcIq"
 
 @app.route('/')
-def form():
+def index():
     return render_template('form.html')
-
-
-@app.route('/submit', methods=['POST'])
-def submit_form():
-    print("📝 Received form submission", flush=True)
-    email = request.form.get('email')  # 👈 New line to get email
-    q1 = request.form.get('q1')
-    q2 = request.form.get('q2')
-    q3 = request.form.get('q3')
-    q4 = request.form.get('q4')
-    q5 = request.form.get('q5')
-
-    responses = [q1, q2, q3, q4, q5]
-    data = pd.DataFrame({'responses':responses})
-    #print(responses)
-    #print(data)
-    #filename = email.replace('@','at')+'.csv'
-    filename = email+'.csv'
-    upload_to_dropbox(data,filename)
-    
-    return "✅ Response submitted and uploaded to Dropbox!"
-
 
 def upload_to_dropbox(data,filename):
     dbx = dropbox.Dropbox(DROPBOX_ACCESS_TOKEN)
@@ -56,8 +19,59 @@ def upload_to_dropbox(data,filename):
     targetfile = "/Apps/ifm_risk_profiling_responses/" + filename
     meta = dbx.files_upload(db_bytes, targetfile, mode=dropbox.files.WriteMode("overwrite"))
 
+@app.route('/submit', methods=['POST'])
+def submit():
+    data = request.form
 
+    # Extract values
+    email = data.get('email')
+    q1 = int(data.get('q1'))
+    q2 = int(data.get('q2'))
+    q3 = int(data.get('q3'))
+    q4 = int(data.get('q4'))
+    q5 = int(data.get('q5'))
+    q6 = int(data.get('q6'))
+    q7 = int(data.get('q7'))
+
+    # Q8: Checkboxes — can have multiple values
+    q8_values = request.form.getlist('q8')
+    q8_score = sum(int(val) for val in q8_values)
+
+    q9 = int(data.get('q9'))
+    q10 = int(data.get('q10'))
+    q11 = int(data.get('q11'))
+    q12 = int(data.get('q12'))
+    q13 = int(data.get('q13'))
+    q14 = int(data.get('q14'))
+    q15 = int(data.get('q15'))
+
+    total_score = sum([
+        q1, q2, q3, q4, q5, q6, q7, q8_score,
+        q9, q10, q11, q12, q13, q14, q15
+    ])
+
+    # Store in DataFrame
+    new_row = pd.DataFrame([{
+        'Email': email,
+        'Q1': q1, 'Q2': q2, 'Q3': q3, 'Q4': q4, 'Q5': q5,
+        'Q6': q6, 'Q7': q7, 'Q8': q8_score, 'Q9': q9, 'Q10': q10,
+        'Q11': q11, 'Q12': q12, 'Q13': q13, 'Q14': q14, 'Q15': q15,
+        'Total Score': total_score
+    }])
+
+    #data = pd.DataFrame({'responses':new_row})
+    print(new_row)
+
+
+    # Append to Excel
+    #df_existing = pd.read_excel(LOCAL_EXCEL_PATH)
+    #df_updated = pd.concat([df_existing, new_row], ignore_index=True)
+    #df_updated.to_excel(LOCAL_EXCEL_PATH, index=False)
+
+    filename = email+'.csv'
+    upload_to_dropbox(new_row,filename)
+    
+    return "✅ Response submitted and uploaded to Dropbox!"
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
