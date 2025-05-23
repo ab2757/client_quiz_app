@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Thank You!</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .thank-you-box {
+      max-width: 600px;
+      margin: 60px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+    .checkmark {
+      font-size: 60px;
+      color: #28a745;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header with logo and company name -->
+  <nav class="navbar navbar-light bg-white shadow-sm">
+    <div class="container d-flex align-items-center">
+      <a class="navbar-brand d-flex align-items-center" href="#" style="gap: 10px;">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 120px;" class="d-inline-block align-middle">
+        <span class="d-inline-block align-middle" style="font-size: 1.5rem; white-space: nowrap;">
+          IFM Investment Advisors
+        </span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Thank You Box -->
+  <div class="thank-you-box">
+    <div class="checkmark">✔</div>
+    <h2 class="mt-3">Thank You!</h2>
+    <p class="lead">Your responses have been recorded successfully.</p>
+    <a href="/" class="btn btn-success mt-4">Back to Home</a>
+  </div>
+
+</body>
+</html>
