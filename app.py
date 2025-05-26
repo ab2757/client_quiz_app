@@ -2,6 +2,10 @@ from flask import Flask, request, render_template
 import pandas as pd
 import dropbox
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+DROPBOX_ACCESS_TOKEN = os.getenv("DROPBOX_ACCESS_TOKEN")
 
 app = Flask(__name__)
 
